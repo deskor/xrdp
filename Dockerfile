@@ -79,4 +79,6 @@ ADD start.sh /
 ENV DISPLAY=:10
 
 ENTRYPOINT ["/start.sh"]
-CMD ["xterm"]
+
+RUN apt-get install -yq rxvt-unicode
+CMD ["rxvt-unicode", "-geometry", "164x58", "-e", "bash"]

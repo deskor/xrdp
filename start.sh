@@ -11,4 +11,5 @@ Xorg -config xrdp/xorg.conf -logfile /tmp/Xjay.log -noreset -ac $DISPLAY &
 xrdp -ns & > /tmp/xrdp.log 2>&1
 
 # Start the X app specified by the CMD / docker run command
+echo "Running: env DISPLAY=$DISPLAY $@"
 exec env DISPLAY=$DISPLAY "$@"
