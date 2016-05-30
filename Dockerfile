@@ -45,6 +45,7 @@ WORKDIR /usr/src/xrdp
 RUN git submodule init && git submodule update
 RUN ./bootstrap
 RUN ./configure --enable-xrdpdebug --enable-tjpeg --enable-fuse --enable-simplesound
+# --enable-load_pulse_modules
 #RUN ./configure --enable-xrdpdebug --enable-neutrinordp --enable-tjpeg --enable-fuse --enable-xrdpvr --enable-rfxcodec --enable-opus
 RUN make
 RUN make install
