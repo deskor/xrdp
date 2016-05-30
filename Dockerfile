@@ -44,7 +44,7 @@ RUN git clone https://github.com/neutrinolabs/xrdp
 WORKDIR /usr/src/xrdp
 RUN git submodule init && git submodule update
 RUN ./bootstrap
-RUN ./configure --enable-xrdpdebug --enable-tjpeg --enable-fuse
+RUN ./configure --enable-xrdpdebug --enable-tjpeg --enable-fuse --enable-simplesound
 #RUN ./configure --enable-xrdpdebug --enable-neutrinordp --enable-tjpeg --enable-fuse --enable-xrdpvr --enable-rfxcodec --enable-opus
 RUN make
 RUN make install
@@ -60,25 +60,46 @@ RUN make install
 # it asks user to select keyboard
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq xserver-xorg-core
 
-#hard code the root pwd
-#RUN echo "root:docker" | chpasswd
-#ADD xsession /root/.xsession
-
 # add our user
 RUN adduser --disabled-password --gecos "" dockerx 
 RUN adduser dockerx sudo
 RUN adduser dockerx users
 RUN echo "dockerx:docker" | chpasswd
 
-ADD run.sh /usr/local/bin/run
-
-ADD xrdp.ini /etc/xrdp/
-ADD start.sh /
-
-# This needs to match the port in the xrdp.ini
-ENV DISPLAY=:10
-
 ENTRYPOINT ["/start.sh"]
 
 RUN apt-get install -yq rxvt-unicode
 CMD ["rxvt-unicode", "-geometry", "164x58", "-e", "bash"]
+
+# Audio?
+# https://github.com/neutrinolabs/xrdp/issues/321
+# http://w.vmeta.jp/tdiary/20140918.html
+RUN apt-get install -yq dpkg-dev dbus-x11
+WORKDIR /usr/src
+RUN \
+	cat /etc/apt/sources.list | sed 's/^deb /deb-src /g' >> /etc/apt/sources.list \
+	&& apt-get update \
+	&& apt-get source pulseaudio \
+	&& apt-get build-dep -yq pulseaudio \
+	&& apt-get source --compile pulseaudio
+
+RUN apt-get install -yq pulseaudio \
+	&& adduser root audio \
+	&& adduser root pulse \
+	&& adduser root pulse-access \
+	&& adduser dockerx audio \
+	&& adduser dockerx pulse \
+	&& adduser dockerx pulse-access
+
+RUN cd /usr/src/xrdp/sesman/chansrv/pulse \
+	&& sed -i~ 's|^PULSE_DIR.*|PULSE_DIR = /usr/src/pulseaudio-5.0|' Makefile \
+	&& make \
+	&& cp module-xrdp-sink.so module-xrdp-source.so /usr/lib/pulse-5.0/modules/
+
+# The scripts that make it work (keep last)
+ADD run.sh /usr/local/bin/run
+ADD xrdp.ini /etc/xrdp/
+ADD start.sh /
+# This needs to match the port in the xrdp.ini
+ENV DISPLAY=:10
+
