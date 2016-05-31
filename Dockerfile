@@ -101,6 +101,3 @@ RUN cd /usr/src/xrdp/sesman/chansrv/pulse \
 ADD run.sh /usr/local/bin/run
 ADD xrdp.ini /etc/xrdp/
 ADD start.sh /
-
-ADD xsession /home/dockerx/.xsession
-RUN chown dockerx:dockerx /home/dockerx/.xsession
