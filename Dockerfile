@@ -44,8 +44,8 @@ RUN git clone https://github.com/neutrinolabs/xrdp
 WORKDIR /usr/src/xrdp
 RUN git submodule init && git submodule update
 RUN ./bootstrap
-RUN ./configure --enable-xrdpdebug --enable-tjpeg --enable-fuse --enable-simplesound
-# --enable-load_pulse_modules
+# --disable-pam as it seems it uses systemd!
+RUN ./configure --enable-xrdpdebug --enable-tjpeg --enable-fuse --enable-simplesound --enable-load_pulse_modules --disable-pam
 #RUN ./configure --enable-xrdpdebug --enable-neutrinordp --enable-tjpeg --enable-fuse --enable-xrdpvr --enable-rfxcodec --enable-opus
 RUN make
 RUN make install
@@ -101,6 +101,6 @@ RUN cd /usr/src/xrdp/sesman/chansrv/pulse \
 ADD run.sh /usr/local/bin/run
 ADD xrdp.ini /etc/xrdp/
 ADD start.sh /
-# This needs to match the port in the xrdp.ini
-ENV DISPLAY=:10
 
+ADD xsession /home/dockerx/.xsession
+RUN chown dockerx:dockerx /home/dockerx/.xsession
